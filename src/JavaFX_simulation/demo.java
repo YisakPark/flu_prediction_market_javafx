@@ -40,13 +40,13 @@ public class demo extends Application {
     yAxis.setLabel("Population Rate (%)");
     
     for(int i=0; i<total_buildings; i++){        
-        String FILE_NAME = "./result/population_rates_building_" + i + ".csv";
+        //LMSR market
+        String FILE_NAME = "./result/LMSR/population_rates_building_" + i + ".csv";
         String line = "";
         String cvsSplitBy = ",";
         //creating the chart
         final LineChart<Number, Number> lineChart = new LineChart<>(xAxis, yAxis);
 
-        lineChart.setTitle("In building " + (i+1));
         //defining a series
         XYChart.Series<Number, Number> S_series = new LineChart.Series<>();
         XYChart.Series<Number, Number> I_series = new LineChart.Series<>();
@@ -59,9 +59,22 @@ public class demo extends Application {
         
         //open and read the file
         try (BufferedReader br = new BufferedReader(new FileReader(FILE_NAME))) {
-            //skip the first line
+            //skip the first line (header)
             br.readLine();
             
+            //read mean squared error
+            float MSE = Float.parseFloat(br.readLine());
+            lineChart.setTitle("(LMSR) In building " + (i+1) + ", (MSE: " + MSE + ")");            
+            
+            //skip the next line which indicates total shares sold
+            br.readLine();
+
+/*
+            //read the number of shares sold
+            int total_shares_sold = Integer.parseInt(br.readLine());
+            lineChart.setTitle("(LMSR) In building " + (i+1) + ", " + MSE + ", " + total_shares_sold + ")");            
+*/
+
             while ((line = br.readLine()) != null) {
                 // use comma as separator
                 String[] data = line.split(cvsSplitBy);
@@ -84,6 +97,60 @@ public class demo extends Application {
         lineChart.getData().add(estimated_flu_rate_series);
         root.getChildren().add(lineChart);
 
+        //flat price market
+        FILE_NAME = "./result/FLAT_PRICE/population_rates_building_" + i + ".csv";
+        //creating the chart
+        final LineChart<Number, Number> lineChart_flat_price = new LineChart<>(xAxis, yAxis);
+
+        //defining a series
+        XYChart.Series<Number, Number> S_series_flat_price = new LineChart.Series<>();
+        XYChart.Series<Number, Number> I_series_flat_price = new LineChart.Series<>();
+        XYChart.Series<Number, Number> R_series_flat_price = new LineChart.Series<>();
+        XYChart.Series<Number, Number> estimated_flu_rate_series_flat_price = new LineChart.Series<>();
+        S_series_flat_price.setName("population rate of group 'S'");
+        I_series_flat_price.setName("population rate of group 'I'");
+        R_series_flat_price.setName("population rate of group 'R'");
+        estimated_flu_rate_series_flat_price.setName("estimated flu population rate");
+        
+        //open and read the file
+        try (BufferedReader br = new BufferedReader(new FileReader(FILE_NAME))) {
+            //skip the first line (header)
+            br.readLine();
+            
+            //read mean squared error
+            float MSE = Float.parseFloat(br.readLine());
+            lineChart_flat_price.setTitle("(flat price) In building " + (i+1) + ", (MSE: " + MSE + ")");            
+
+            //skip the next line which indicates total shares sold
+            br.readLine();
+
+/*            
+            //read the number of shares sold
+            int total_shares_sold = Integer.parseInt(br.readLine());
+            lineChart_flat_price.setTitle("(flat price) In building " + (i+1) + ", " + MSE + ", " + total_shares_sold + ")");            
+*/          
+
+            while ((line = br.readLine()) != null) {
+                // use comma as separator
+                String[] data = line.split(cvsSplitBy);
+                S_series_flat_price.getData().add(
+                        new LineChart.Data<>(Float.parseFloat(data[DAY]),Float.parseFloat(data[S_RATE])));
+                I_series_flat_price.getData().add(
+                        new LineChart.Data<>(Float.parseFloat(data[DAY]),Float.parseFloat(data[I_RATE])));
+                R_series_flat_price.getData().add(
+                        new LineChart.Data<>(Float.parseFloat(data[DAY]),Float.parseFloat(data[R_RATE])));
+                estimated_flu_rate_series_flat_price.getData().add(
+                        new LineChart.Data<>(Float.parseFloat(data[DAY]),Float.parseFloat(data[ESTIMATED_RATE])));
+            }
+
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+        lineChart_flat_price.getData().add(S_series_flat_price);
+        lineChart_flat_price.getData().add(I_series_flat_price);
+        lineChart_flat_price.getData().add(R_series_flat_price);
+        lineChart_flat_price.getData().add(estimated_flu_rate_series_flat_price);
+        root.getChildren().add(lineChart_flat_price);        
     }
     Scene scene = new Scene(sp, 800, 600);
 
